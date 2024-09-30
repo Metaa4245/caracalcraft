@@ -1,11 +1,48 @@
 #![allow(dead_code)]
-use super::{packet_id::PacketId, protocol::Protocol};
+use super::protocol::Protocol;
 use crate::Result;
 use tokio::{io::AsyncReadExt, net::TcpStream};
 
 pub trait Packet<T> {
     async fn read(stream: &mut TcpStream) -> Result<T>;
     async fn write(&self, stream: &mut TcpStream) -> Result<()>;
+}
+
+#[repr(u8)]
+pub enum PacketId {
+    KeepAlive,
+    Login,
+    Handshake,
+    Chat,
+    UpdateTime,
+    PlayerInventory,
+    SpawnPosition,
+    Flying = 10,
+    PlayerPosition,
+    PlayerLook,
+    PlayerLookMove,
+    BlockDig,
+    Place,
+    BlockItemSwitch,
+    AddToInventory,
+    ArmAnimation,
+    NamedEntitySpawn = 20,
+    PickupSpawn,
+    Collect,
+    VehicleSpawn,
+    MobSpawn,
+    DestroyEntity = 29,
+    Entity,
+    RelEntityMove,
+    EntityLook,
+    RelEntityMoveLook,
+    EntityTeleport,
+    PreChunk = 50,
+    MapChunk,
+    MultiBlockChange,
+    BlockChange,
+    ComplexEntity = 59,
+    KickDisconnect = 255,
 }
 
 pub struct KeepAlive {}
@@ -82,6 +119,22 @@ pub struct Place {
     pub y: i8,
     pub z: i32,
     pub direction: i8,
+}
+
+pub struct BlockItemSwitch {
+    pub entity_id: i32,
+    pub id: i16,
+}
+
+pub struct AddToInventory {
+    pub item_id: i16,
+    pub count: i8,
+    pub item_damage: i16,
+}
+
+pub struct ArmAnimation {
+    pub entity_id: i32,
+    pub animate: i8,
 }
 
 pub struct KickDisconnect {
@@ -313,6 +366,59 @@ impl Packet<Self> for Place {
         stream.write_byte(self.y).await?;
         stream.write_int(self.z).await?;
         stream.write_byte(self.direction).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for BlockItemSwitch {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            id: stream.read_short().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::BlockItemSwitch as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_short(self.id).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for AddToInventory {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            item_id: stream.read_short().await?,
+            count: stream.read_byte().await?,
+            item_damage: stream.read_short().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::AddToInventory as i8).await?;
+        stream.write_short(self.item_id).await?;
+        stream.write_byte(self.count).await?;
+        stream.write_short(self.item_damage).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for ArmAnimation {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            animate: stream.read_byte().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::ArmAnimation as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_byte(self.animate).await?;
 
         Ok(())
     }
