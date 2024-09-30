@@ -1,7 +1,8 @@
+mod network;
+mod noise;
+
 use tokio::net::TcpListener;
 use tracing::info;
-
-mod network;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
