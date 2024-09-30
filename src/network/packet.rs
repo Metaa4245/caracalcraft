@@ -8,6 +8,7 @@ pub trait Packet<T> {
     async fn write(&self, stream: &mut TcpStream) -> Result<()>;
 }
 
+#[derive(enumn::N, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum PacketId {
     KeepAlive,
