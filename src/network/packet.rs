@@ -11,37 +11,81 @@ pub trait Packet<T> {
 pub struct KeepAlive {}
 
 pub struct Login {
-    protocol_version: i32,
-    username: String,
-    password: String,
+    pub protocol_version: i32,
+    pub username: String,
+    pub password: String,
 }
 
 pub struct Handshake {
-    username: String,
+    pub username: String,
 }
 
 pub struct Chat {
-    message: String,
+    pub message: String,
 }
 
 pub struct UpdateTime {
-    time: i64,
+    pub time: i64,
 }
 
 // TODO: here Packet5PlayerInventory
 
 pub struct SpawnPosition {
-    x: i32,
-    y: i32,
-    z: i32,
-}
-
-pub struct KickDisconnect {
-    reason: String,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
 }
 
 pub struct Flying {
-    on_ground: bool,
+    pub on_ground: bool,
+}
+
+pub struct PlayerPosition {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub stance: f64,
+    pub moving: bool,
+    pub on_ground: bool,
+}
+
+pub struct PlayerLook {
+    pub yaw: f32,
+    pub pitch: f32,
+    pub rotating: bool,
+    pub on_ground: bool,
+}
+
+pub struct PlayerLookMove {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub stance: f64,
+    pub yaw: f32,
+    pub pitch: f32,
+    pub moving: bool,
+    pub rotating: bool,
+    pub on_ground: bool,
+}
+
+pub struct BlockDig {
+    pub x: i32,
+    pub y: i8,
+    pub z: i32,
+    pub status: i8,
+    pub face: i8,
+}
+
+pub struct Place {
+    pub id: i16,
+    pub x: i32,
+    pub y: i8,
+    pub z: i32,
+    pub direction: i8,
+}
+
+pub struct KickDisconnect {
+    pub reason: String,
 }
 
 impl Packet<Self> for KeepAlive {
@@ -150,6 +194,125 @@ impl Packet<Self> for Flying {
     async fn write(&self, stream: &mut TcpStream) -> Result<()> {
         stream.write_byte(PacketId::Flying as i8).await?;
         stream.write_bool(self.on_ground).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for PlayerPosition {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            x: stream.read_double().await?,
+            y: stream.read_double().await?,
+            stance: stream.read_double().await?,
+            z: stream.read_double().await?,
+            moving: true,
+            on_ground: stream.read_bool().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::PlayerPosition as i8).await?;
+        stream.write_double(self.x).await?;
+        stream.write_double(self.y).await?;
+        stream.write_double(self.stance).await?;
+        stream.write_double(self.z).await?;
+        stream.write_bool(self.on_ground).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for PlayerLook {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            yaw: stream.read_float().await?,
+            pitch: stream.read_float().await?,
+            rotating: true,
+            on_ground: stream.read_bool().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::PlayerLook as i8).await?;
+        stream.write_float(self.yaw).await?;
+        stream.write_float(self.pitch).await?;
+        stream.write_bool(self.on_ground).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for PlayerLookMove {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            x: stream.read_double().await?,
+            y: stream.read_double().await?,
+            stance: stream.read_double().await?,
+            z: stream.read_double().await?,
+            yaw: stream.read_float().await?,
+            pitch: stream.read_float().await?,
+            on_ground: stream.read_bool().await?,
+            moving: true,
+            rotating: true,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::PlayerLookMove as i8).await?;
+        stream.write_double(self.x).await?;
+        stream.write_double(self.y).await?;
+        stream.write_double(self.stance).await?;
+        stream.write_double(self.z).await?;
+        stream.write_float(self.yaw).await?;
+        stream.write_float(self.pitch).await?;
+        stream.write_bool(self.on_ground).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for BlockDig {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            status: stream.read_byte().await?,
+            x: stream.read_int().await?,
+            y: stream.read_byte().await?,
+            z: stream.read_int().await?,
+            face: stream.read_byte().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::BlockDig as i8).await?;
+        stream.write_byte(self.status).await?;
+        stream.write_int(self.x).await?;
+        stream.write_byte(self.y).await?;
+        stream.write_int(self.z).await?;
+        stream.write_byte(self.face).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for Place {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            id: stream.read_short().await?,
+            x: stream.read_int().await?,
+            y: stream.read_byte().await?,
+            z: stream.read_int().await?,
+            direction: stream.read_byte().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::Place as i8).await?;
+        stream.write_short(self.id).await?;
+        stream.write_int(self.x).await?;
+        stream.write_byte(self.y).await?;
+        stream.write_int(self.z).await?;
+        stream.write_byte(self.direction).await?;
 
         Ok(())
     }
