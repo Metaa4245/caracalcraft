@@ -96,6 +96,7 @@ impl Protocol for TcpStream {
     async fn write_string(&mut self, val: String) -> Result<()> {
         let to_java = cesu8::to_java_cesu8(val.as_str());
 
+        self.write_short(to_java.len() as i16).await?;
         for byte in to_java.iter().copied() {
             self.write_u8(byte).await?;
         }
