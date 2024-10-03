@@ -149,6 +149,31 @@ pub struct NamedEntitySpawn {
     pub pitch: i8,
 }
 
+pub struct PickupSpawn {
+    pub entity_id: i32,
+    pub item_id: i16,
+    pub count: i8,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+    pub rotation: i8,
+    pub pitch: i8,
+    pub roll: i8,
+}
+
+pub struct Collect {
+    pub collected_entity_id: i32,
+    pub collector_entity_id: i32,
+}
+
+pub struct VehicleSpawn {
+    pub entity_id: i32,
+    pub entity_type: i8,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+}
+
 pub struct KickDisconnect {
     pub reason: String,
 }
@@ -465,6 +490,77 @@ impl Packet<Self> for NamedEntitySpawn {
     }
 }
 
+impl Packet<Self> for PickupSpawn {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            item_id: stream.read_short().await?,
+            count: stream.read_byte().await?,
+            x: stream.read_int().await?,
+            y: stream.read_int().await?,
+            z: stream.read_int().await?,
+            rotation: stream.read_byte().await?,
+            pitch: stream.read_byte().await?,
+            roll: stream.read_byte().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::PickupSpawn as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_short(self.item_id).await?;
+        stream.write_byte(self.count).await?;
+        stream.write_int(self.x).await?;
+        stream.write_int(self.y).await?;
+        stream.write_int(self.z).await?;
+        stream.write_byte(self.rotation).await?;
+        stream.write_byte(self.pitch).await?;
+        stream.write_byte(self.roll).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for Collect {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            collected_entity_id: stream.read_int().await?,
+            collector_entity_id: stream.read_int().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::Collect as i8).await?;
+        stream.write_int(self.collected_entity_id).await?;
+        stream.write_int(self.collector_entity_id).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for VehicleSpawn {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            entity_type: stream.read_byte().await?,
+            x: stream.read_int().await?,
+            y: stream.read_int().await?,
+            z: stream.read_int().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::VehicleSpawn as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_byte(self.entity_type).await?;
+        stream.write_int(self.x).await?;
+        stream.write_int(self.y).await?;
+        stream.write_int(self.z).await?;
+
+        Ok(())
+    }
+}
+
 impl Packet<Self> for KickDisconnect {
     async fn read(stream: &mut TcpStream) -> Result<Self> {
         Ok(Self {
@@ -477,11 +573,5 @@ impl Packet<Self> for KickDisconnect {
         stream.write_string(self.reason.clone()).await?;
 
         Ok(())
-    }
-}
-
-impl NamedEntitySpawn {
-    pub fn new() -> Self {
-        todo!("blocking on entityplayer")
     }
 }

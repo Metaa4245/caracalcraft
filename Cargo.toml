@@ -4,9 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bbox = "0.14.1"
 cesu8 = "1.1.0"
 enumn = "0.1.14"
 fastnbt = "2.5.0"
+glam = "0.29.0"
+nibble_vec = "0.1.0"
 noise = { version = "0.9.0", features = ["std"] }
 serde = { version = "1.0.210", features = ["derive"] }
 tokio = { version = "1.40.0", features = ["full"] }
