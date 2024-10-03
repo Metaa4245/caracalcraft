@@ -138,6 +138,17 @@ pub struct ArmAnimation {
     pub animate: i8,
 }
 
+pub struct NamedEntitySpawn {
+    pub entity_id: i32,
+    pub current_item: i16,
+    pub name: String,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+    pub rotation: i8,
+    pub pitch: i8,
+}
+
 pub struct KickDisconnect {
     pub reason: String,
 }
@@ -425,6 +436,35 @@ impl Packet<Self> for ArmAnimation {
     }
 }
 
+impl Packet<Self> for NamedEntitySpawn {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            name: stream.read_string().await?,
+            x: stream.read_int().await?,
+            y: stream.read_int().await?,
+            z: stream.read_int().await?,
+            rotation: stream.read_byte().await?,
+            pitch: stream.read_byte().await?,
+            current_item: stream.read_short().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::NamedEntitySpawn as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_string(self.name.clone()).await?;
+        stream.write_int(self.x).await?;
+        stream.write_int(self.y).await?;
+        stream.write_int(self.z).await?;
+        stream.write_byte(self.rotation).await?;
+        stream.write_byte(self.pitch).await?;
+        stream.write_short(self.current_item).await?;
+
+        Ok(())
+    }
+}
+
 impl Packet<Self> for KickDisconnect {
     async fn read(stream: &mut TcpStream) -> Result<Self> {
         Ok(Self {
@@ -437,5 +477,11 @@ impl Packet<Self> for KickDisconnect {
         stream.write_string(self.reason.clone()).await?;
 
         Ok(())
+    }
+}
+
+impl NamedEntitySpawn {
+    pub fn new() -> Self {
+        todo!("blocking on entityplayer")
     }
 }

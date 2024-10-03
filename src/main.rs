@@ -1,5 +1,4 @@
 mod network;
-mod noise;
 
 use tokio::net::TcpListener;
 use tracing::info;
