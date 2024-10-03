@@ -1,11 +1,8 @@
 use super::{packet::PacketId, packet_handler::*, protocol::Protocol};
 use crate::Result;
 use tokio::net::TcpStream;
-use tracing::info;
 
 pub async fn handle_stream(stream: &mut TcpStream) -> Result<()> {
-    info!("Spawned task");
-
     loop {
         let packet_byte = stream.read_byte().await?;
 
