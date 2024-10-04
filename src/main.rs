@@ -1,8 +1,8 @@
+mod block;
 mod entity;
 mod item;
 mod map;
 mod network;
-mod player;
 
 use tokio::net::TcpListener;
 
