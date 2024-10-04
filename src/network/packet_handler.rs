@@ -1,7 +1,7 @@
 use crate::Result;
 use tokio::net::TcpStream;
 
-use super::packet::*;
+use super::packet::{Handshake, KickDisconnect, Login, Packet};
 
 pub async fn handle_handshake(stream: &mut TcpStream) -> Result<()> {
     let _ = Handshake::read(stream).await?;

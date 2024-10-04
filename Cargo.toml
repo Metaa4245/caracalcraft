@@ -2,6 +2,11 @@
 name = "caracalcraft"
 version = "0.1.0"
 edition = "2021"
+description = "alpha v1.1.2_01 server written in rust"
+license = "MIT"
+repository = "https://github.com/Metaa4245/caracalcraft"
+categories = ["games"]
+keywords = ["minecraft", "v1.1.2_01"]
 
 [dependencies]
 cesu8 = "1.1.0"

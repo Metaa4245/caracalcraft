@@ -1,7 +1,12 @@
-use super::{packet::PacketId, packet_handler::*, protocol::Protocol};
+use super::{
+    packet::PacketId,
+    packet_handler::{handle_handshake, handle_login},
+    protocol::Protocol,
+};
 use crate::Result;
 use tokio::net::TcpStream;
 
+#[allow(clippy::cast_sign_loss)]
 pub async fn handle_stream(stream: &mut TcpStream) -> Result<()> {
     loop {
         let packet_byte = stream.read_byte().await?;
