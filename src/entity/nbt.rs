@@ -1,4 +1,4 @@
-use macaw::{DVec3, Vec3};
+use parry3d::na::Vector3;
 use serde::{Deserialize, Serialize};
 
 use crate::item::nbt::ItemData;
@@ -18,11 +18,11 @@ pub struct EntityData {
     #[serde(rename = "Item")]
     pub item: Option<ItemData>,
     #[serde(rename = "Motion")]
-    pub motion: DVec3,
+    pub motion: Vector3<f64>,
     #[serde(rename = "Pos")]
-    pub pos: DVec3,
+    pub pos: Vector3<f64>,
     #[serde(rename = "Rotation")]
-    pub rotation: Vec3,
+    pub rotation: Vector3<f32>,
     #[serde(rename = "OnGround")]
     pub on_ground: bool,
     pub id: String,

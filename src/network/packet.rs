@@ -174,6 +174,31 @@ pub struct VehicleSpawn {
     pub z: i32,
 }
 
+pub struct MobSpawn {
+    pub entity_id: i32,
+    pub entity_type: i8,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+    pub yaw: i8,
+    pub pitch: i8,
+}
+
+pub struct DestroyEntity {
+    pub entity_id: i32,
+}
+
+pub struct Entity {
+    pub entity_id: i32,
+}
+
+pub struct RelEntityMove {
+    pub entity_id: i32,
+    pub x: i8,
+    pub y: i8,
+    pub z: i8,
+}
+
 pub struct KickDisconnect {
     pub reason: String,
 }
@@ -556,6 +581,84 @@ impl Packet<Self> for VehicleSpawn {
         stream.write_int(self.x).await?;
         stream.write_int(self.y).await?;
         stream.write_int(self.z).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for MobSpawn {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            entity_type: stream.read_byte().await?,
+            x: stream.read_int().await?,
+            y: stream.read_int().await?,
+            z: stream.read_int().await?,
+            yaw: stream.read_byte().await?,
+            pitch: stream.read_byte().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::MobSpawn as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_byte(self.entity_type).await?;
+        stream.write_int(self.x).await?;
+        stream.write_int(self.y).await?;
+        stream.write_int(self.z).await?;
+        stream.write_byte(self.yaw).await?;
+        stream.write_byte(self.pitch).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for DestroyEntity {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::DestroyEntity as i8).await?;
+        stream.write_int(self.entity_id).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for Entity {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::Entity as i8).await?;
+        stream.write_int(self.entity_id).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for RelEntityMove {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            x: stream.read_byte().await?,
+            y: stream.read_byte().await?,
+            z: stream.read_byte().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::RelEntityMove as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_byte(self.x).await?;
+        stream.write_byte(self.y).await?;
+        stream.write_byte(self.z).await?;
 
         Ok(())
     }
