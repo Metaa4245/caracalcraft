@@ -1,6 +1,6 @@
 use super::Material;
 
-pub struct NormalMaterial;
+pub struct NormalMaterial {}
 
 impl Material for NormalMaterial {
     fn is_liquid() -> bool {

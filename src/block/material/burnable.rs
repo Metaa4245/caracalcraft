@@ -1,6 +1,6 @@
 use super::Material;
 
-pub struct BurnableMaterial;
+pub struct BurnableMaterial {}
 
 impl Material for BurnableMaterial {
     fn is_liquid() -> bool {
