@@ -199,6 +199,36 @@ pub struct RelEntityMove {
     pub z: i8,
 }
 
+pub struct EntityLook {
+    pub entity_id: i32,
+    pub yaw: i8,
+    pub pitch: i8,
+}
+
+pub struct RelEntityMoveLook {
+    pub entity_id: i32,
+    pub x: i8,
+    pub y: i8,
+    pub z: i8,
+    pub yaw: i8,
+    pub pitch: i8,
+}
+
+pub struct EntityTeleport {
+    pub entity_id: i32,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+    pub yaw: i8,
+    pub pitch: i8,
+}
+
+pub struct PreChunk {
+    pub x: i32,
+    pub z: i32,
+    pub mode: bool,
+}
+
 pub struct KickDisconnect {
     pub reason: String,
 }
@@ -659,6 +689,94 @@ impl Packet<Self> for RelEntityMove {
         stream.write_byte(self.x).await?;
         stream.write_byte(self.y).await?;
         stream.write_byte(self.z).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for EntityLook {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            yaw: stream.read_byte().await?,
+            pitch: stream.read_byte().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::EntityLook as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_byte(self.yaw).await?;
+        stream.write_byte(self.pitch).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for RelEntityMoveLook {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            x: stream.read_byte().await?,
+            y: stream.read_byte().await?,
+            z: stream.read_byte().await?,
+            yaw: stream.read_byte().await?,
+            pitch: stream.read_byte().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::RelEntityMoveLook as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_byte(self.x).await?;
+        stream.write_byte(self.y).await?;
+        stream.write_byte(self.z).await?;
+        stream.write_byte(self.yaw).await?;
+        stream.write_byte(self.pitch).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for EntityTeleport {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            entity_id: stream.read_int().await?,
+            x: stream.read_int().await?,
+            y: stream.read_int().await?,
+            z: stream.read_int().await?,
+            yaw: stream.read_byte().await?,
+            pitch: stream.read_byte().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::EntityTeleport as i8).await?;
+        stream.write_int(self.entity_id).await?;
+        stream.write_int(self.x).await?;
+        stream.write_int(self.y).await?;
+        stream.write_int(self.z).await?;
+        stream.write_byte(self.yaw).await?;
+        stream.write_byte(self.pitch).await?;
+
+        Ok(())
+    }
+}
+
+impl Packet<Self> for PreChunk {
+    async fn read(stream: &mut TcpStream) -> Result<Self> {
+        Ok(Self {
+            x: stream.read_int().await?,
+            z: stream.read_int().await?,
+            mode: stream.read_bool().await?,
+        })
+    }
+
+    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
+        stream.write_byte(PacketId::PreChunk as i8).await?;
+        stream.write_int(self.x).await?;
+        stream.write_int(self.z).await?;
+        stream.write_bool(self.mode).await?;
 
         Ok(())
     }
