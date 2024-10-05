@@ -16,7 +16,7 @@ pub trait Protocol {
     async fn read_double(&mut self) -> Result<f64>;
     async fn read_string(&mut self) -> Result<String>;
 
-    async fn write_bytes(&mut self, val: Vec<i8>) -> Result<()>;
+    async fn write_bytes(&mut self, val: Vec<u8>) -> Result<()>;
 }
 
 impl Protocol for TcpStream {
@@ -69,10 +69,8 @@ impl Protocol for TcpStream {
         Ok(cesu8::from_java_cesu8(&buf)?.to_string())
     }
 
-    async fn write_bytes(&mut self, val: Vec<i8>) -> Result<()> {
-        for byte in val {
-            self.write_i8(byte).await?;
-        }
+    async fn write_bytes(&mut self, val: Vec<u8>) -> Result<()> {
+        self.write_all(&val[..]).await?;
 
         Ok(())
     }

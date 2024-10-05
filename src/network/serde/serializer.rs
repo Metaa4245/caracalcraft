@@ -3,10 +3,10 @@ use crate::Result;
 use serde::{ser, Serialize};
 
 pub struct Serializer {
-    output: Vec<i8>,
+    output: Vec<u8>,
 }
 
-pub fn to_bytes<T>(value: &T) -> Result<Vec<i8>>
+pub fn to_bytes<T>(value: &T) -> Result<Vec<u8>>
 where
     T: Serialize,
 {
@@ -28,91 +28,83 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     type SerializeTupleVariant = Self;
 
     fn serialize_bool(self, v: bool) -> SerdeResult<()> {
-        self.output.push(i8::from(v));
+        self.output.push(u8::from(v));
 
         Ok(())
     }
 
+    #[allow(clippy::cast_sign_loss)]
     fn serialize_i8(self, v: i8) -> SerdeResult<()> {
+        self.output.push(v as u8);
+
+        Ok(())
+    }
+
+    fn serialize_i16(self, v: i16) -> SerdeResult<()> {
+        for byte in v.to_be_bytes() {
+            self.output.push(byte);
+        }
+
+        Ok(())
+    }
+
+    fn serialize_i32(self, v: i32) -> SerdeResult<()> {
+        for byte in v.to_be_bytes() {
+            self.output.push(byte);
+        }
+
+        Ok(())
+    }
+
+    fn serialize_i64(self, v: i64) -> SerdeResult<()> {
+        for byte in v.to_be_bytes() {
+            self.output.push(byte);
+        }
+
+        Ok(())
+    }
+
+    fn serialize_u8(self, v: u8) -> SerdeResult<()> {
         self.output.push(v);
 
         Ok(())
     }
 
-    #[allow(clippy::cast_possible_wrap)]
-    fn serialize_i16(self, v: i16) -> SerdeResult<()> {
-        for byte in v.to_be_bytes() {
-            self.output.push(byte as i8);
-        }
-
-        Ok(())
-    }
-
-    #[allow(clippy::cast_possible_wrap)]
-    fn serialize_i32(self, v: i32) -> SerdeResult<()> {
-        for byte in v.to_be_bytes() {
-            self.output.push(byte as i8);
-        }
-
-        Ok(())
-    }
-
-    #[allow(clippy::cast_possible_wrap)]
-    fn serialize_i64(self, v: i64) -> SerdeResult<()> {
-        for byte in v.to_be_bytes() {
-            self.output.push(byte as i8);
-        }
-
-        Ok(())
-    }
-
-    #[allow(clippy::cast_possible_wrap)]
-    fn serialize_u8(self, v: u8) -> SerdeResult<()> {
-        self.output.push(v as i8);
-
-        Ok(())
-    }
-
-    #[allow(clippy::cast_possible_wrap)]
     fn serialize_u16(self, v: u16) -> SerdeResult<()> {
         for byte in v.to_be_bytes() {
-            self.output.push(byte as i8);
+            self.output.push(byte);
         }
 
         Ok(())
     }
 
-    #[allow(clippy::cast_possible_wrap)]
     fn serialize_u32(self, v: u32) -> SerdeResult<()> {
         for byte in v.to_be_bytes() {
-            self.output.push(byte as i8);
+            self.output.push(byte);
         }
 
         Ok(())
     }
 
-    #[allow(clippy::cast_possible_wrap)]
     fn serialize_u64(self, v: u64) -> SerdeResult<()> {
         for byte in v.to_be_bytes() {
-            self.output.push(byte as i8);
+            self.output.push(byte);
         }
 
         Ok(())
     }
 
-    #[allow(clippy::cast_possible_wrap)]
     fn serialize_f32(self, v: f32) -> SerdeResult<()> {
         for byte in v.to_be_bytes() {
-            self.output.push(byte as i8);
+            self.output.push(byte);
         }
 
         Ok(())
     }
 
-    #[allow(clippy::cast_possible_wrap)]
     fn serialize_f64(self, v: f64) -> SerdeResult<()> {
         for byte in v.to_be_bytes() {
-            self.output.push(byte as i8);
+            self.output.push(byte);
         }
 
         Ok(())
@@ -122,7 +114,6 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         unimplemented!();
     }
 
-    #[allow(clippy::cast_possible_wrap)]
     fn serialize_str(self, v: &str) -> SerdeResult<()> {
         let to_java = cesu8::to_java_cesu8(v);
 
@@ -133,7 +124,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
 
         self.serialize_i16(len.unwrap())?;
         for byte in to_java.iter().copied() {
-            self.output.push(byte as i8);
+            self.output.push(byte);
         }
 
         Ok(())
