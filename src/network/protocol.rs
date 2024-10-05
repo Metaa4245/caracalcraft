@@ -8,7 +8,7 @@ use crate::Result;
 pub trait Protocol {
     async fn read_bool(&mut self) -> Result<bool>;
     async fn read_byte(&mut self) -> Result<i8>;
-    async fn read_bytes(&mut self, len: usize) -> Result<Vec<i8>>;
+    async fn read_bytes(&mut self, len: usize) -> Result<Vec<u8>>;
     async fn read_short(&mut self) -> Result<i16>;
     async fn read_int(&mut self) -> Result<i32>;
     async fn read_long(&mut self) -> Result<i64>;
@@ -28,12 +28,9 @@ impl Protocol for TcpStream {
         Ok(self.read_i8().await?)
     }
 
-    async fn read_bytes(&mut self, len: usize) -> Result<Vec<i8>> {
-        let mut buf: Vec<i8> = vec![];
-
-        for _ in 0..len {
-            buf.push(self.read_byte().await?);
-        }
+    async fn read_bytes(&mut self, len: usize) -> Result<Vec<u8>> {
+        let mut buf: Vec<u8> = vec![0; len];
+        self.read_buf(&mut buf).await?;
 
         Ok(buf)
     }
@@ -60,11 +57,8 @@ impl Protocol for TcpStream {
 
     async fn read_string(&mut self) -> Result<String> {
         let len = self.read_short().await?;
-        let mut buf = vec![];
-
-        for _ in 0..len {
-            buf.push(self.read_u8().await?);
-        }
+        let mut buf = vec![0; len.try_into()?];
+        self.read_buf(&mut buf).await?;
 
         Ok(cesu8::from_java_cesu8(&buf)?.to_string())
     }
