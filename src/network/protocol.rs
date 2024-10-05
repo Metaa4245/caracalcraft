@@ -8,6 +8,7 @@ use crate::Result;
 pub trait Protocol {
     async fn read_bool(&mut self) -> Result<bool>;
     async fn read_byte(&mut self) -> Result<i8>;
+    async fn read_bytes(&mut self, len: usize) -> Result<Vec<i8>>;
     async fn read_short(&mut self) -> Result<i16>;
     async fn read_int(&mut self) -> Result<i32>;
     async fn read_long(&mut self) -> Result<i64>;
@@ -17,6 +18,7 @@ pub trait Protocol {
 
     async fn write_bool(&mut self, val: bool) -> Result<()>;
     async fn write_byte(&mut self, val: i8) -> Result<()>;
+    async fn write_bytes(&mut self, val: Vec<i8>) -> Result<()>;
     async fn write_short(&mut self, val: i16) -> Result<()>;
     async fn write_int(&mut self, val: i32) -> Result<()>;
     async fn write_long(&mut self, val: i64) -> Result<()>;
@@ -32,6 +34,16 @@ impl Protocol for TcpStream {
 
     async fn read_byte(&mut self) -> Result<i8> {
         Ok(self.read_i8().await?)
+    }
+
+    async fn read_bytes(&mut self, len: usize) -> Result<Vec<i8>> {
+        let mut buf: Vec<i8> = vec![];
+
+        for _ in 0..len {
+            buf.push(self.read_byte().await?);
+        }
+
+        Ok(buf)
     }
 
     async fn read_short(&mut self) -> Result<i16> {
@@ -71,6 +83,14 @@ impl Protocol for TcpStream {
 
     async fn write_byte(&mut self, val: i8) -> Result<()> {
         Ok(self.write_i8(val).await?)
+    }
+
+    async fn write_bytes(&mut self, val: Vec<i8>) -> Result<()> {
+        for byte in val {
+            self.write_byte(byte).await?;
+        }
+
+        Ok(())
     }
 
     async fn write_short(&mut self, val: i16) -> Result<()> {
