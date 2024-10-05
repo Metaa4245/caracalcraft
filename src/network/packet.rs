@@ -1,11 +1,11 @@
 #![allow(dead_code)]
 use super::protocol::Protocol;
 use crate::Result;
+use serde::{Deserialize, Serialize};
 use tokio::{io::AsyncReadExt, net::TcpStream};
 
 pub trait Packet<T> {
     async fn read(stream: &mut TcpStream) -> Result<T>;
-    async fn write(&self, stream: &mut TcpStream) -> Result<()>;
 }
 
 #[derive(enumn::N, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -46,38 +46,46 @@ pub enum PacketId {
     KickDisconnect = 255,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct KeepAlive {}
 
+#[derive(Serialize, Deserialize)]
 pub struct Login {
     pub protocol_version: i32,
     pub username: String,
     pub password: String,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Handshake {
     pub username: String,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Chat {
     pub message: String,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct UpdateTime {
     pub time: i64,
 }
 
 // TODO: here Packet5PlayerInventory
 
+#[derive(Serialize, Deserialize)]
 pub struct SpawnPosition {
     pub x: i32,
     pub y: i32,
     pub z: i32,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Flying {
     pub on_ground: bool,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct PlayerPosition {
     pub x: f64,
     pub y: f64,
@@ -87,6 +95,7 @@ pub struct PlayerPosition {
     pub on_ground: bool,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct PlayerLook {
     pub yaw: f32,
     pub pitch: f32,
@@ -94,6 +103,7 @@ pub struct PlayerLook {
     pub on_ground: bool,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct PlayerLookMove {
     pub x: f64,
     pub y: f64,
@@ -106,6 +116,7 @@ pub struct PlayerLookMove {
     pub on_ground: bool,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct BlockDig {
     pub x: i32,
     pub y: i8,
@@ -114,6 +125,7 @@ pub struct BlockDig {
     pub face: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Place {
     pub id: i16,
     pub x: i32,
@@ -122,22 +134,26 @@ pub struct Place {
     pub direction: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct BlockItemSwitch {
     pub entity_id: i32,
     pub id: i16,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct AddToInventory {
     pub item_id: i16,
     pub count: i8,
     pub item_damage: i16,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct ArmAnimation {
     pub entity_id: i32,
     pub animate: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct NamedEntitySpawn {
     pub entity_id: i32,
     pub current_item: i16,
@@ -149,6 +165,7 @@ pub struct NamedEntitySpawn {
     pub pitch: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct PickupSpawn {
     pub entity_id: i32,
     pub item_id: i16,
@@ -161,11 +178,13 @@ pub struct PickupSpawn {
     pub roll: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Collect {
     pub collected_entity_id: i32,
     pub collector_entity_id: i32,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct VehicleSpawn {
     pub entity_id: i32,
     pub entity_type: i8,
@@ -174,6 +193,7 @@ pub struct VehicleSpawn {
     pub z: i32,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct MobSpawn {
     pub entity_id: i32,
     pub entity_type: i8,
@@ -184,14 +204,17 @@ pub struct MobSpawn {
     pub pitch: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct DestroyEntity {
     pub entity_id: i32,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Entity {
     pub entity_id: i32,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct RelEntityMove {
     pub entity_id: i32,
     pub x: i8,
@@ -199,12 +222,14 @@ pub struct RelEntityMove {
     pub z: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct EntityLook {
     pub entity_id: i32,
     pub yaw: i8,
     pub pitch: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct RelEntityMoveLook {
     pub entity_id: i32,
     pub x: i8,
@@ -214,6 +239,7 @@ pub struct RelEntityMoveLook {
     pub pitch: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct EntityTeleport {
     pub entity_id: i32,
     pub x: i32,
@@ -223,12 +249,14 @@ pub struct EntityTeleport {
     pub pitch: i8,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct PreChunk {
     pub x: i32,
     pub z: i32,
     pub mode: bool,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct KickDisconnect {
     pub reason: String,
 }
@@ -236,12 +264,6 @@ pub struct KickDisconnect {
 impl Packet<Self> for KeepAlive {
     async fn read(_stream: &mut TcpStream) -> Result<Self> {
         Ok(Self {})
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::KeepAlive as i8).await?;
-
-        Ok(())
     }
 }
 
@@ -253,14 +275,6 @@ impl Packet<Self> for Login {
             password: stream.read_string().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::Login as i8).await?;
-        stream.write_string(self.username.clone()).await?;
-        stream.write_string(self.password.clone()).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for Handshake {
@@ -268,13 +282,6 @@ impl Packet<Self> for Handshake {
         Ok(Self {
             username: stream.read_string().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::Handshake as i8).await?;
-        stream.write_string(self.username.clone()).await?;
-
-        Ok(())
     }
 }
 
@@ -284,13 +291,6 @@ impl Packet<Self> for Chat {
             message: stream.read_string().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::Chat as i8).await?;
-        stream.write_string(self.message.clone()).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for UpdateTime {
@@ -298,13 +298,6 @@ impl Packet<Self> for UpdateTime {
         Ok(Self {
             time: stream.read_long().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::UpdateTime as i8).await?;
-        stream.write_long(self.time).await?;
-
-        Ok(())
     }
 }
 
@@ -318,15 +311,6 @@ impl Packet<Self> for SpawnPosition {
             z: stream.read_int().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::SpawnPosition as i8).await?;
-        stream.write_int(self.x).await?;
-        stream.write_int(self.y).await?;
-        stream.write_int(self.z).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for Flying {
@@ -334,13 +318,6 @@ impl Packet<Self> for Flying {
         Ok(Self {
             on_ground: stream.read_bool().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::Flying as i8).await?;
-        stream.write_bool(self.on_ground).await?;
-
-        Ok(())
     }
 }
 
@@ -355,17 +332,6 @@ impl Packet<Self> for PlayerPosition {
             on_ground: stream.read_bool().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::PlayerPosition as i8).await?;
-        stream.write_double(self.x).await?;
-        stream.write_double(self.y).await?;
-        stream.write_double(self.stance).await?;
-        stream.write_double(self.z).await?;
-        stream.write_bool(self.on_ground).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for PlayerLook {
@@ -376,15 +342,6 @@ impl Packet<Self> for PlayerLook {
             rotating: true,
             on_ground: stream.read_bool().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::PlayerLook as i8).await?;
-        stream.write_float(self.yaw).await?;
-        stream.write_float(self.pitch).await?;
-        stream.write_bool(self.on_ground).await?;
-
-        Ok(())
     }
 }
 
@@ -402,19 +359,6 @@ impl Packet<Self> for PlayerLookMove {
             rotating: true,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::PlayerLookMove as i8).await?;
-        stream.write_double(self.x).await?;
-        stream.write_double(self.y).await?;
-        stream.write_double(self.stance).await?;
-        stream.write_double(self.z).await?;
-        stream.write_float(self.yaw).await?;
-        stream.write_float(self.pitch).await?;
-        stream.write_bool(self.on_ground).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for BlockDig {
@@ -426,17 +370,6 @@ impl Packet<Self> for BlockDig {
             z: stream.read_int().await?,
             face: stream.read_byte().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::BlockDig as i8).await?;
-        stream.write_byte(self.status).await?;
-        stream.write_int(self.x).await?;
-        stream.write_byte(self.y).await?;
-        stream.write_int(self.z).await?;
-        stream.write_byte(self.face).await?;
-
-        Ok(())
     }
 }
 
@@ -450,17 +383,6 @@ impl Packet<Self> for Place {
             direction: stream.read_byte().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::Place as i8).await?;
-        stream.write_short(self.id).await?;
-        stream.write_int(self.x).await?;
-        stream.write_byte(self.y).await?;
-        stream.write_int(self.z).await?;
-        stream.write_byte(self.direction).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for BlockItemSwitch {
@@ -469,14 +391,6 @@ impl Packet<Self> for BlockItemSwitch {
             entity_id: stream.read_int().await?,
             id: stream.read_short().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::BlockItemSwitch as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_short(self.id).await?;
-
-        Ok(())
     }
 }
 
@@ -488,15 +402,6 @@ impl Packet<Self> for AddToInventory {
             item_damage: stream.read_short().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::AddToInventory as i8).await?;
-        stream.write_short(self.item_id).await?;
-        stream.write_byte(self.count).await?;
-        stream.write_short(self.item_damage).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for ArmAnimation {
@@ -505,14 +410,6 @@ impl Packet<Self> for ArmAnimation {
             entity_id: stream.read_int().await?,
             animate: stream.read_byte().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::ArmAnimation as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_byte(self.animate).await?;
-
-        Ok(())
     }
 }
 
@@ -528,20 +425,6 @@ impl Packet<Self> for NamedEntitySpawn {
             pitch: stream.read_byte().await?,
             current_item: stream.read_short().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::NamedEntitySpawn as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_string(self.name.clone()).await?;
-        stream.write_int(self.x).await?;
-        stream.write_int(self.y).await?;
-        stream.write_int(self.z).await?;
-        stream.write_byte(self.rotation).await?;
-        stream.write_byte(self.pitch).await?;
-        stream.write_short(self.current_item).await?;
-
-        Ok(())
     }
 }
 
@@ -559,21 +442,6 @@ impl Packet<Self> for PickupSpawn {
             roll: stream.read_byte().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::PickupSpawn as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_short(self.item_id).await?;
-        stream.write_byte(self.count).await?;
-        stream.write_int(self.x).await?;
-        stream.write_int(self.y).await?;
-        stream.write_int(self.z).await?;
-        stream.write_byte(self.rotation).await?;
-        stream.write_byte(self.pitch).await?;
-        stream.write_byte(self.roll).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for Collect {
@@ -582,14 +450,6 @@ impl Packet<Self> for Collect {
             collected_entity_id: stream.read_int().await?,
             collector_entity_id: stream.read_int().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::Collect as i8).await?;
-        stream.write_int(self.collected_entity_id).await?;
-        stream.write_int(self.collector_entity_id).await?;
-
-        Ok(())
     }
 }
 
@@ -602,17 +462,6 @@ impl Packet<Self> for VehicleSpawn {
             y: stream.read_int().await?,
             z: stream.read_int().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::VehicleSpawn as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_byte(self.entity_type).await?;
-        stream.write_int(self.x).await?;
-        stream.write_int(self.y).await?;
-        stream.write_int(self.z).await?;
-
-        Ok(())
     }
 }
 
@@ -628,19 +477,6 @@ impl Packet<Self> for MobSpawn {
             pitch: stream.read_byte().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::MobSpawn as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_byte(self.entity_type).await?;
-        stream.write_int(self.x).await?;
-        stream.write_int(self.y).await?;
-        stream.write_int(self.z).await?;
-        stream.write_byte(self.yaw).await?;
-        stream.write_byte(self.pitch).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for DestroyEntity {
@@ -649,13 +485,6 @@ impl Packet<Self> for DestroyEntity {
             entity_id: stream.read_int().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::DestroyEntity as i8).await?;
-        stream.write_int(self.entity_id).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for Entity {
@@ -663,13 +492,6 @@ impl Packet<Self> for Entity {
         Ok(Self {
             entity_id: stream.read_int().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::Entity as i8).await?;
-        stream.write_int(self.entity_id).await?;
-
-        Ok(())
     }
 }
 
@@ -682,16 +504,6 @@ impl Packet<Self> for RelEntityMove {
             z: stream.read_byte().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::RelEntityMove as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_byte(self.x).await?;
-        stream.write_byte(self.y).await?;
-        stream.write_byte(self.z).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for EntityLook {
@@ -701,15 +513,6 @@ impl Packet<Self> for EntityLook {
             yaw: stream.read_byte().await?,
             pitch: stream.read_byte().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::EntityLook as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_byte(self.yaw).await?;
-        stream.write_byte(self.pitch).await?;
-
-        Ok(())
     }
 }
 
@@ -724,18 +527,6 @@ impl Packet<Self> for RelEntityMoveLook {
             pitch: stream.read_byte().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::RelEntityMoveLook as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_byte(self.x).await?;
-        stream.write_byte(self.y).await?;
-        stream.write_byte(self.z).await?;
-        stream.write_byte(self.yaw).await?;
-        stream.write_byte(self.pitch).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for EntityTeleport {
@@ -749,18 +540,6 @@ impl Packet<Self> for EntityTeleport {
             pitch: stream.read_byte().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::EntityTeleport as i8).await?;
-        stream.write_int(self.entity_id).await?;
-        stream.write_int(self.x).await?;
-        stream.write_int(self.y).await?;
-        stream.write_int(self.z).await?;
-        stream.write_byte(self.yaw).await?;
-        stream.write_byte(self.pitch).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for PreChunk {
@@ -771,15 +550,6 @@ impl Packet<Self> for PreChunk {
             mode: stream.read_bool().await?,
         })
     }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::PreChunk as i8).await?;
-        stream.write_int(self.x).await?;
-        stream.write_int(self.z).await?;
-        stream.write_bool(self.mode).await?;
-
-        Ok(())
-    }
 }
 
 impl Packet<Self> for KickDisconnect {
@@ -787,12 +557,5 @@ impl Packet<Self> for KickDisconnect {
         Ok(Self {
             reason: stream.read_string().await?,
         })
-    }
-
-    async fn write(&self, stream: &mut TcpStream) -> Result<()> {
-        stream.write_byte(PacketId::KickDisconnect as i8).await?;
-        stream.write_string(self.reason.clone()).await?;
-
-        Ok(())
     }
 }
