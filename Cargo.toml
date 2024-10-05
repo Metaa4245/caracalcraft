@@ -9,6 +9,7 @@ categories = ["games"]
 keywords = ["minecraft", "v1.1.2_01"]
 
 [dependencies]
+bytes = "1.7.2"
 cesu8 = "1.1.0"
 enumn = "0.1.14"
 fastnbt = "2.5.0"

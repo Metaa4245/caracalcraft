@@ -123,9 +123,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         }
 
         self.serialize_i16(len.unwrap())?;
-        for byte in to_java.iter().copied() {
-            self.output.push(byte);
-        }
+        self.output.extend_from_slice(&to_java);
 
         Ok(())
     }
