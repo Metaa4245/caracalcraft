@@ -16,7 +16,15 @@ pub trait Protocol {
     async fn read_double(&mut self) -> Result<f64>;
     async fn read_string(&mut self) -> Result<String>;
 
-    async fn write_bytes(&mut self, val: Vec<u8>) -> Result<()>;
+    async fn write_bool(&mut self, val: bool) -> Result<()>;
+    async fn write_byte(&mut self, val: i8) -> Result<()>;
+    async fn write_bytes(&mut self, val: &[u8]) -> Result<()>;
+    async fn write_short(&mut self, val: i16) -> Result<()>;
+    async fn write_int(&mut self, val: i32) -> Result<()>;
+    async fn write_long(&mut self, val: i64) -> Result<()>;
+    async fn write_float(&mut self, val: f32) -> Result<()>;
+    async fn write_double(&mut self, val: f64) -> Result<()>;
+    async fn write_string(&mut self, val: String) -> Result<()>;
 }
 
 impl Protocol for TcpStream {
@@ -63,8 +71,45 @@ impl Protocol for TcpStream {
         Ok(cesu8::from_java_cesu8(&buf)?.to_string())
     }
 
-    async fn write_bytes(&mut self, val: Vec<u8>) -> Result<()> {
-        self.write_all(&val[..]).await?;
+    async fn write_bool(&mut self, val: bool) -> Result<()> {
+        Ok(self.write_i8(i8::from(val)).await?)
+    }
+
+    async fn write_bytes(&mut self, val: &[u8]) -> Result<()> {
+        self.write_all(val).await?;
+
+        Ok(())
+    }
+
+    async fn write_byte(&mut self, val: i8) -> Result<()> {
+        Ok(self.write_i8(val).await?)
+    }
+
+    async fn write_short(&mut self, val: i16) -> Result<()> {
+        Ok(self.write_i16(val).await?)
+    }
+
+    async fn write_int(&mut self, val: i32) -> Result<()> {
+        Ok(self.write_i32(val).await?)
+    }
+
+    async fn write_long(&mut self, val: i64) -> Result<()> {
+        Ok(self.write_i64(val).await?)
+    }
+
+    async fn write_float(&mut self, val: f32) -> Result<()> {
+        Ok(self.write_f32(val).await?)
+    }
+
+    async fn write_double(&mut self, val: f64) -> Result<()> {
+        Ok(self.write_f64(val).await?)
+    }
+
+    async fn write_string(&mut self, val: String) -> Result<()> {
+        let to_java = cesu8::to_java_cesu8(val.as_str());
+
+        self.write_short(i16::try_from(to_java.len())?).await?;
+        self.write_bytes(&to_java).await?;
 
         Ok(())
     }
