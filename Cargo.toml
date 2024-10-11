@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 hecs = "0.10.5"
 macaw = "0.19.1"
-yaks = { version = "0.1.0", features = ["parallel"] }
+yaks = "0.1.0"
 
 [profile.release]
 strip = true
