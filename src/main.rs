@@ -1,5 +1,4 @@
 mod component;
-mod entity;
 mod system;
 
 use hecs::World;
